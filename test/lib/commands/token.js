@@ -63,9 +63,9 @@ t.test('token list', async t => {
   registry.getTokens(tokens)
   await npm.exec('token', [])
   t.strictSame(outputs, [
-    `Publish token efgh5678efgh5678… with id abcd123 created ${now.slice(0, 10)}`,
+    `Token efgh5678efgh5678… with id abcd123 created ${now.slice(0, 10)}`,
     '',
-    `Read only token hgfe8765… with id abcd125 created ${now.slice(0, 10)}`,
+    `Token hgfe8765… with id abcd125 created ${now.slice(0, 10)}`,
     'with IP whitelist: 192.168.1.1/32',
     '',
   ])
