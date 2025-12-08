@@ -473,3 +473,126 @@ t.test('token create invalid cidr', async t => {
     message: 'CIDR whitelist contains invalid CIDR entry: apple/cider',
   })
 })
+
+t.test('token create with comma-separated packages', async t => {
+  const { npm, outputs } = await loadMockNpm(t, {
+    config: {
+      ...auth,
+      name: 'csv-packages-token',
+      password: 'test-password',
+      packages: '@npmcli/pkg1,@npmcli/pkg2,@npmcli/pkg3',
+      'packages-and-scopes-permission': 'read-write',
+    },
+  })
+
+  const registry = new MockRegistry({
+    tap: t,
+    registry: npm.config.get('registry'),
+    authorization: authToken,
+  })
+
+  registry.createToken({
+    name: 'csv-packages-token',
+    password: 'test-password',
+    packages: ['@npmcli/pkg1', '@npmcli/pkg2', '@npmcli/pkg3'],
+    packages_and_scopes_permission: 'read-write',
+  }, {
+    access: 'publish',
+  })
+
+  await npm.exec('token', ['create'])
+  t.match(outputs, ['Created publish token n3wt0k3n'])
+})
+
+t.test('token create with comma-separated scopes', async t => {
+  const { npm, outputs } = await loadMockNpm(t, {
+    config: {
+      ...auth,
+      name: 'csv-scopes-token',
+      password: 'test-password',
+      scopes: '@npmcli,@scope2,@scope3',
+      'packages-and-scopes-permission': 'read-only',
+    },
+  })
+
+  const registry = new MockRegistry({
+    tap: t,
+    registry: npm.config.get('registry'),
+    authorization: authToken,
+  })
+
+  registry.createToken({
+    name: 'csv-scopes-token',
+    password: 'test-password',
+    scopes: ['@npmcli', '@scope2', '@scope3'],
+    packages_and_scopes_permission: 'read-only',
+  }, {
+    access: 'read-only',
+  })
+
+  await npm.exec('token', ['create'])
+  t.match(outputs, ['Created read only token n3wt0k3n'])
+})
+
+t.test('token create with comma-separated orgs', async t => {
+  const { npm, outputs } = await loadMockNpm(t, {
+    config: {
+      ...auth,
+      name: 'csv-orgs-token',
+      password: 'test-password',
+      orgs: '@npmcli,@org2,@org3',
+      'orgs-permission': 'read-write',
+    },
+  })
+
+  const registry = new MockRegistry({
+    tap: t,
+    registry: npm.config.get('registry'),
+    authorization: authToken,
+  })
+
+  registry.createToken({
+    name: 'csv-orgs-token',
+    password: 'test-password',
+    orgs: ['@npmcli', '@org2', '@org3'],
+    orgs_permission: 'read-write',
+  }, {
+    access: 'publish',
+  })
+
+  await npm.exec('token', ['create'])
+  t.match(outputs, ['Created publish token n3wt0k3n'])
+})
+
+t.test('token create with comma-separated cidr', async t => {
+  const { npm, outputs } = await loadMockNpm(t, {
+    config: {
+      ...auth,
+      name: 'csv-cidr-token',
+      password: 'test-password',
+      cidr: '10.0.0.0/8,192.168.1.0/24,172.16.0.0/12',
+    },
+  })
+
+  const registry = new MockRegistry({
+    tap: t,
+    registry: npm.config.get('registry'),
+    authorization: authToken,
+  })
+
+  const expires = new Date()
+  registry.createToken({
+    name: 'csv-cidr-token',
+    password: 'test-password',
+    cidr_whitelist: ['10.0.0.0/8', '192.168.1.0/24', '172.16.0.0/12'],
+  }, {
+    cidr_whitelist: ['10.0.0.0/8', '192.168.1.0/24', '172.16.0.0/12'],
+    expires,
+  })
+
+  await npm.exec('token', ['create'])
+  t.match(outputs, [
+    'Created read only token n3wt0k3n',
+    'with IP whitelist: 10.0.0.0/8,192.168.1.0/24,172.16.0.0/12',
+  ])
+})
